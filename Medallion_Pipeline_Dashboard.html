@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medallion Pipeline Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #4f8ef7;
+    --accent2: #38d9a9;
+    --accent3: #f7c948;
+    --accent4: #f76f6f;
+    --text: #e8eaf6;
+    --text2: #8b92b8;
+    --text3: #555e8a;
+    --A: #4f8ef7;
+    --B: #38d9a9;
+    --C: #f7c948;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    animation: slideDown 0.5s ease;
+  }
+
+  @keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .badge {
+    background: rgba(79, 142, 247, 0.12);
+    border: 1px solid rgba(79, 142, 247, 0.3);
+    color: var(--accent);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .date-badge {
+    color: var(--text2);
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* MAIN */
+  .main {
+    padding: 28px 36px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+    margin-top: 28px;
+  }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  @keyframes fadeUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .kpi-card:nth-child(1)::before { background: var(--accent); }
+  .kpi-card:nth-child(2)::before { background: var(--accent2); }
+  .kpi-card:nth-child(3)::before { background: var(--accent3); }
+  .kpi-card:nth-child(4)::before { background: var(--accent4); }
+
+  .kpi-icon {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .kpi-card:nth-child(1) .kpi-value { color: var(--accent); }
+  .kpi-card:nth-child(2) .kpi-value { color: var(--accent2); }
+  .kpi-card:nth-child(3) .kpi-value { color: var(--accent3); }
+  .kpi-card:nth-child(4) .kpi-value { color: var(--accent4); }
+
+  .kpi-label {
+    font-size: 13px;
+    color: var(--text2);
+    font-weight: 400;
+  }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* CHARTS GRID */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
+
+  .charts-grid-2 {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 16px;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    transition: border-color 0.2s;
+  }
+
+  .chart-card:hover {
+    border-color: var(--border);
+  }
+
+  .chart-card.wide {
+    grid-column: span 2;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .chart-tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+    background: rgba(79,142,247,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(79,142,247,0.2);
+  }
+
+  .chart-container {
+    position: relative;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text3);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 36px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0 0;
+  }
+
+  /* STAT ROW */
+  .stat-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .stat-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .stat-pill span {
+    color: var(--text);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">⬡</div>
+    <div>
+      <div class="header-title">Medallion Pipeline Dashboard</div>
+      <div class="header-subtitle">Gold Layer · Customer Analytics · 2026</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge">● Live</div>
+    <div class="date-badge">Updated: 28 Apr 2026</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- KPI SECTION -->
+  <div class="section-label">Key Performance Indicators</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-value">15.0L</div>
+      <div class="kpi-label">Total Customers</div>
+      <div class="kpi-sub">1,500,000 records</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-value">100%</div>
+      <div class="kpi-label">Active Customers</div>
+      <div class="kpi-sub">All records active</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">⭐</div>
+      <div class="kpi-value">80.0</div>
+      <div class="kpi-label">Avg Rating Score</div>
+      <div class="kpi-sub">A=100 · B=80 · C=60</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">📍</div>
+      <div class="kpi-value">50+</div>
+      <div class="kpi-label">States Covered</div>
+      <div class="kpi-sub">Pan USA · CRM Source</div>
+    </div>
+  </div>
+
+  <!-- ROW 1: 3 CHARTS -->
+  <div class="section-label" style="margin-top:28px;">Customer Distribution</div>
+  <div class="charts-grid">
+
+    <!-- Credit Rating Donut -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Customers by Credit Rating</div>
+        <div class="chart-tag">Donut</div>
+      </div>
+      <div class="chart-container" style="height:200px;">
+        <canvas id="creditChart"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--A)"></div> A — 500,446</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--B)"></div> B — 499,232</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--C)"></div> C — 500,322</div>
+      </div>
+    </div>
+
+    <!-- Customer Segment Bar -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Customers by Segment</div>
+        <div class="chart-tag">Bar</div>
+      </div>
+      <div class="chart-container" style="height:200px;">
+        <canvas id="segmentChart"></canvas>
+      </div>
+      <div class="stat-row">
+        <div class="stat-pill">Retail <span>~500K</span></div>
+        <div class="stat-pill">Corporate <span>~500K</span></div>
+        <div class="stat-pill">SME <span>~500K</span></div>
+      </div>
+    </div>
+
+    <!-- Customer Status -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Customer Status</div>
+        <div class="chart-tag">Donut</div>
+      </div>
+      <div class="chart-container" style="height:200px;">
+        <canvas id="statusChart"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Active — 1,500,000</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--text3)"></div> Inactive — 0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: 2 CHARTS -->
+  <div class="section-label" style="margin-top:28px;">Geographic & Rating Analysis</div>
+  <div class="charts-grid-2">
+
+    <!-- Rating Score Bar -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Rating Score Distribution by Credit Rating</div>
+        <div class="chart-tag">Bar</div>
+      </div>
+      <div class="chart-container" style="height:220px;">
+        <canvas id="ratingChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Top States -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Top States by Customers</div>
+        <div class="chart-tag">Horizontal Bar</div>
+      </div>
+      <div class="chart-container" style="height:220px;">
+        <canvas id="stateChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 3: LOAD YEAR -->
+  <div class="section-label" style="margin-top:28px;">Pipeline Load Summary</div>
+  <div class="chart-card" style="animation: fadeUp 0.6s ease 0.4s both;">
+    <div class="chart-header">
+      <div class="chart-title">Customers Loaded by Quarter · 2026</div>
+      <div class="chart-tag">Line</div>
+    </div>
+    <div class="chart-container" style="height:160px;">
+      <canvas id="loadChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Medallion Architecture · Bronze → Silver → Gold · AWS S3 + Azure ADLS Gen2 + Azure Databricks · Student: Yash Pareek · 2022BTECH115
+</div>
+
+<script>
+const FONT = "'DM Sans', sans-serif";
+Chart.defaults.font.family = FONT;
+Chart.defaults.color = '#8b92b8';
+
+const tooltip = {
+  backgroundColor: '#22263a',
+  borderColor: '#2e3350',
+  borderWidth: 1,
+  titleColor: '#e8eaf6',
+  bodyColor: '#8b92b8',
+  padding: 10,
+  cornerRadius: 8,
+};
+
+// 1. Credit Rating Donut
+new Chart(document.getElementById('creditChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Rating A', 'Rating B', 'Rating C'],
+    datasets: [{
+      data: [500446, 499232, 500322],
+      backgroundColor: ['#4f8ef7', '#38d9a9', '#f7c948'],
+      borderColor: '#1a1d27',
+      borderWidth: 3,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '68%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { ...tooltip, callbacks: {
+        label: ctx => ` ${ctx.label}: ${ctx.raw.toLocaleString()}`
+      }}
+    }
+  }
+});
+
+// 2. Segment Bar
+new Chart(document.getElementById('segmentChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Retail', 'Corporate', 'SME'],
+    datasets: [{
+      data: [500100, 499800, 500100],
+      backgroundColor: ['#4f8ef7cc', '#38d9a9cc', '#f7c948cc'],
+      borderColor: ['#4f8ef7', '#38d9a9', '#f7c948'],
+      borderWidth: 1.5,
+      borderRadius: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip },
+    scales: {
+      x: { grid: { color: '#2e3350' }, ticks: { color: '#8b92b8' } },
+      y: { grid: { color: '#2e3350' }, ticks: { color: '#8b92b8', callback: v => (v/1000)+'K' } }
+    }
+  }
+});
+
+// 3. Status Donut
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Active', 'Inactive'],
+    datasets: [{
+      data: [1500000, 0],
+      backgroundColor: ['#38d9a9', '#2e3350'],
+      borderColor: '#1a1d27',
+      borderWidth: 3,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '68%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { ...tooltip, callbacks: {
+        label: ctx => ` ${ctx.label}: ${ctx.raw.toLocaleString()}`
+      }}
+    }
+  }
+});
+
+// 4. Rating Score Bar
+new Chart(document.getElementById('ratingChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Credit Rating A', 'Credit Rating B', 'Credit Rating C'],
+    datasets: [
+      {
+        label: 'Total Rating Score',
+        data: [50044600, 39938560, 30019320],
+        backgroundColor: ['#4f8ef7aa', '#38d9a9aa', '#f7c948aa'],
+        borderColor: ['#4f8ef7', '#38d9a9', '#f7c948'],
+        borderWidth: 1.5,
+        borderRadius: 8,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: {
+      label: ctx => ` Score: ${(ctx.raw/1000000).toFixed(1)}M`
+    }}},
+    scales: {
+      x: { grid: { color: '#2e3350' }, ticks: { color: '#8b92b8' } },
+      y: { grid: { color: '#2e3350' }, ticks: { color: '#8b92b8', callback: v => (v/1000000).toFixed(0)+'M' } }
+    }
+  }
+});
+
+// 5. Top States Horizontal Bar
+new Chart(document.getElementById('stateChart'), {
+  type: 'bar',
+  data: {
+    labels: ['State_43','State_28','State_31','State_25','State_37','State_17','State_9','State_4','State_2','State_18'],
+    datasets: [{
+      data: [32000, 31500, 30800, 30200, 29800, 29500, 29000, 28800, 28500, 28200],
+      backgroundColor: '#4f8ef766',
+      borderColor: '#4f8ef7',
+      borderWidth: 1.5,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: {
+      label: ctx => ` Customers: ${ctx.raw.toLocaleString()}`
+    }}},
+    scales: {
+      x: { grid: { color: '#2e3350' }, ticks: { color: '#8b92b8', callback: v => (v/1000)+'K' } },
+      y: { grid: { color: 'transparent' }, ticks: { color: '#8b92b8', font: { size: 11 } } }
+    }
+  }
+});
+
+// 6. Load by Quarter Line
+new Chart(document.getElementById('loadChart'), {
+  type: 'line',
+  data: {
+    labels: ['Q1 Jan', 'Q1 Feb', 'Q1 Mar', 'Q2 Apr'],
+    datasets: [{
+      label: 'Customers Loaded',
+      data: [375000, 750000, 1125000, 1500000],
+      borderColor: '#4f8ef7',
+      backgroundColor: 'rgba(79,142,247,0.08)',
+      borderWidth: 2.5,
+      pointBackgroundColor: '#4f8ef7',
+      pointBorderColor: '#1a1d27',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      fill: true,
+      tension: 0.4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: {
+      label: ctx => ` Loaded: ${ctx.raw.toLocaleString()}`
+    }}},
+    scales: {
+      x: { grid: { color: '#2e3350' }, ticks: { color: '#8b92b8' } },
+      y: { grid: { color: '#2e3350' }, ticks: { color: '#8b92b8', callback: v => (v/1000)+'K' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
